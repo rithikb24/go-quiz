@@ -6,17 +6,37 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 )
 
 func main() {
+
+	csvReader, f := fileReader("problems.csv")
+	finalCount := QuestionAnswer(csvReader)
+	fmt.Println("final count is :", finalCount)
+	defer f.Close()
+}
+
+func fileReader(filepath string) (*csv.Reader, *os.File) {
+	// takes filepath as input and returns csv object
+
 	f, err := os.Open("problems.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
-	var count int
-	defer f.Close()
+
 	csvReader := csv.NewReader(f)
+
+	fmt.Println(reflect.TypeOf(csvReader))
+
+	return csvReader, f
+
+}
+
+func QuestionAnswer(csvReader *csv.Reader) int {
+	// takes csv object as input and loop over each row using first row as a question, taking input as user, and compraing to it 2nd columsn for answer while keeping a count
+	var count int
 	for {
 		rec, err := csvReader.Read()
 		if err == io.EOF {
@@ -32,9 +52,9 @@ func main() {
 		fmt.Println("Enter the answer for above:")
 		var input int
 		_, error := fmt.Scanln(&input)
+
 		if err != nil {
 			log.Fatal(error)
-			return
 		}
 		value, err := strconv.Atoi(rec[1])
 		if err != nil {
@@ -44,5 +64,5 @@ func main() {
 			count += 1
 		}
 	}
-	fmt.Println("final count is :", count)
+	return count
 }
