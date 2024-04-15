@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-
+	// work on adding a timer
 	csvReader, f := fileReader("problems.csv")
 	finalCount := QuestionAnswer(csvReader)
 	fmt.Println("final count is :", finalCount)
