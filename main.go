@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -37,32 +38,51 @@ func fileReader(filepath string) (*csv.Reader, *os.File) {
 func QuestionAnswer(csvReader *csv.Reader) int {
 	// takes csv object as input and loop over each row using first row as a question, taking input as user, and compraing to it 2nd columsn for answer while keeping a count
 	var count int
-	for {
-		rec, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		}
+	done := make(chan bool)
+	// timer1 := time.NewTimer(10 * time.Second)
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	go func() {
+		for {
+			rec, err := csvReader.Read()
+			if err == io.EOF {
+				break
+			}
 
-		fmt.Println(rec[0])
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		fmt.Println("Enter the answer for above:")
-		var input int
-		_, error := fmt.Scanln(&input)
+			fmt.Println(rec[0])
 
-		if err != nil {
-			log.Fatal(error)
+			fmt.Println("Enter the answer for above:")
+
+			var input int
+			_, error := fmt.Scanln(&input)
+
+			if err != nil {
+				log.Fatal(error)
+			}
+			value, err := strconv.Atoi(rec[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+			if input == value {
+				count += 1
+			}
+
 		}
-		value, err := strconv.Atoi(rec[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		if input == value {
-			count += 1
-		}
+		done <- true
+	}()
+
+	timer := time.NewTimer(30 * time.Second)
+
+	select {
+	case <-done:
+		fmt.Println("All Questions Completed!")
+		return count
+	case <-timer.C:
+		fmt.Println("Timer ran out!")
+		return count
 	}
-	return count
+
 }
